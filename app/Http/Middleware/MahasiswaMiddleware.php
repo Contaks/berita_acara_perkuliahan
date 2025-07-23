@@ -10,9 +10,10 @@ class MahasiswaMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->role === 'mahasiswa') {
+        if (Auth::guard('mahasiswa')->check()) {
             return $next($request);
         }
-        return redirect('/')->with('error', 'Anda tidak memiliki akses ke halaman ini.');
+
+        return redirect('/')->with('error', 'Anda tidak memiliki akses sebagai mahasiswa.');
     }
 }

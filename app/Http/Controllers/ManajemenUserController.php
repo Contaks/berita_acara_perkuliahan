@@ -10,7 +10,7 @@ class ManajemenUserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
+        $users = User::latest()->get();
         return view('admin.manajemen_user.index', compact('users'));
     }
 
@@ -23,27 +23,19 @@ class ManajemenUserController extends Controller
     {
         $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-            'phone'    => 'nullable|string|max:20',
-            'nik'      => 'nullable|string|max:20',
-            'nim'      => 'nullable|string|max:20',
+            'email'    => 'required|email|unique:users,email',
+            'password' => 'required|min:6',
             'role'     => 'required|in:admin,dosen,mahasiswa',
-            'class'    => 'nullable|string|max:50',
         ]);
 
-        $data = $request->all();
-        $data['password'] = Hash::make($request->password);
-
-        User::create($data);
+        User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'role'     => $request->role,
+        ]);
 
         return redirect()->route('admin.manajemen_user.index')->with('success', 'User berhasil ditambahkan.');
-    }
-
-    public function show($id)
-    {
-        $user = User::findOrFail($id);
-        return view('admin.manajemen_user.show', compact('user'));
     }
 
     public function edit($id)
@@ -57,32 +49,28 @@ class ManajemenUserController extends Controller
         $user = User::findOrFail($id);
 
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:6|confirmed',
-            'phone'    => 'nullable|string|max:20',
-            'nik'      => 'nullable|string|max:20',
-            'nim'      => 'nullable|string|max:20',
-            'role'     => 'required|in:admin,dosen,mahasiswa',
-            'class'    => 'nullable|string|max:50',
+            'name'  => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'role'  => 'required|in:admin,dosen,mahasiswa',
         ]);
 
-        $data = $request->except(['password']);
+        $user->update([
+            'name'  => $request->name,
+            'email' => $request->email,
+            'role'  => $request->role,
+        ]);
 
         if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
+            $request->validate(['password' => 'min:6']);
+            $user->update(['password' => Hash::make($request->password)]);
         }
-
-        $user->update($data);
 
         return redirect()->route('admin.manajemen_user.index')->with('success', 'User berhasil diperbarui.');
     }
 
     public function destroy($id)
     {
-        $user = User::findOrFail($id);
-        $user->delete();
-
+        User::destroy($id);
         return redirect()->route('admin.manajemen_user.index')->with('success', 'User berhasil dihapus.');
     }
 }

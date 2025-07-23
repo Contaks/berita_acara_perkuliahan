@@ -36,11 +36,20 @@ return [
     */
 
     'guards' => [
-        'web' => [
+        'admin' => [
             'driver' => 'session',
-            'provider' => 'users',
+            'provider' => 'admins',
+        ],
+        'dosen' => [
+            'driver' => 'session',
+            'provider' => 'dosens',
+        ],
+        'mahasiswa' => [
+            'driver' => 'session',
+            'provider' => 'mahasiswas',
         ],
     ],
+
 
     /*
     |--------------------------------------------------------------------------
@@ -60,15 +69,18 @@ return [
     */
 
     'providers' => [
-        'users' => [
+        'admins' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model' => App\Models\Admin::class,
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'dosens' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Dosen::class,
+        ],
+        'mahasiswas' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Mahasiswa::class,
+        ],
     ],
 
     /*

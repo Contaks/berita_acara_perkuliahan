@@ -1,55 +1,35 @@
-@extends('layouts.app')
+@extends('layouts.mahasiswa.app')
 
-@section('title', 'Data Jadwal Perkuliahan')
+@section('title', '📅 Jadwal Kuliah Saya')
 
 @section('contents')
-<div class="row">
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-header">
-                <h5>Data Jadwal Perkuliahan</h5>
-                <a href="{{ route('jadwal.create') }}" class="btn btn-primary btn-sm">Tambah Jadwal</a>
-            </div>
-            <div class="card-body">
-                @if (session('success'))
-                    <div class="alert alert-success">{{ session('success') }}</div>
-                @endif
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Mata Kuliah</th>
-                            <th>Hari</th>
-                            <th>Jam</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($jadwals as $jadwal)
-                            <tr>
-                                <td>{{ $loop->iteration }}</td>
-                                <td>{{ $jadwal->mataKuliah->nama_mk }}</td>
-                                <td>{{ $jadwal->hari }}</td>
-                                <td>{{ $jadwal->jam_mulai }} - {{ $jadwal->jam_selesai }}</td>
-                                <td>
-                                    <a href="{{ route('jadwal.show', $jadwal->id) }}" class="btn btn-info btn-sm">Show</a>
-                                    <a href="{{ route('jadwal.edit', $jadwal->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                                    <form action="{{ route('jadwal.destroy', $jadwal->id) }}" method="POST" style="display:inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus jadwal ini?')">Delete</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-center">Tidak ada data jadwal</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
+  <div class="container-fluid">
+
+    <table class="table-bordered table-striped table">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Mata Kuliah</th>
+          <th>Hari</th>
+          <th>Waktu</th>
+          <th>Ruang</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach ($jadwals as $index => $jadwal)
+          <tr>
+            <td>{{ $index + 1 }}</td>
+            <td>{{ $jadwal->nama_mk }}</td>
+            <td>{{ $jadwal->hari }}</td>
+            <td>{{ $jadwal->waktu }}</td>
+            <td>{{ $jadwal->ruang }}</td>
+            <td>
+              <a href="{{ route('mahasiswa.jadwal.show', $jadwal->id) }}" class="btn btn-info btn-sm">Detail</a>
+            </td>
+          </tr>
+        @endforeach
+      </tbody>
+    </table>
+  </div>
 @endsection

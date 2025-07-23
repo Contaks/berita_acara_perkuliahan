@@ -1,53 +1,62 @@
 @extends('layouts.admin.app')
 
-@section('title', 'Approve BAP')
+@section('title', 'Daftar Verifikasi BAP')
 
 @section('contents')
-  <div class="row">
-    <div class="col-lg-12">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5>Approve Berita Acara Perkuliahan (BAP)</h5>
-          <a href="{{ route('admin.bap.approved') }}" class="btn btn-primary btn-sm">List BAP yang Sudah Diapprove</a>
-        </div>
-        <div class="card-body">
-          @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-          @endif
-          <table class="table">
-            <thead>
+  <div class="container-fluid">
+    <h4 class="mb-3"><i class="fas fa-file-signature"></i> Daftar Verifikasi BAP Dosen</h4>
+
+    @if (session('success'))
+      <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    <div class="card shadow">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table-bordered table-striped table">
+            <thead class="table-light">
               <tr>
-                <th>#</th>
-                <th>Tanggal</th>
+                <th>Hari</th>
                 <th>Mata Kuliah</th>
-                <th>Materi</th>
-                <th>Keterangan</th>
+                <th>Dosen</th>
+                <th style="white-space: nowrap;">Waktu</th>
                 <th>Status</th>
+                <th>Dibuat</th>
                 <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              @foreach ($baps as $bap)
+              @forelse($baps as $bap)
                 <tr>
-                  <td>{{ $loop->iteration }}</td>
-                  <td>{{ $bap->tanggal }}</td>
-                  <td>{{ $bap->jadwal->mataKuliah->nama_mk }}</td>
-                  <td>{{ $bap->materi }}</td>
-                  <td>{{ $bap->keterangan }}</td>
-                  <td><span class="badge badge-warning">{{ ucfirst($bap->status) }}</span></td>
+                  <td>{{ $bap->jadwal->hari ?? '-' }}</td>
+                  <td>{{ $bap->jadwal->nama_mk ?? '-' }}</td>
+                  <td>{{ $bap->dosen->nama ?? '-' }}</td>
+                  <td style="white-space: nowrap;">{{ $bap->jadwal->waktu ?? '-' }}</td>
                   <td>
-                    <a href="{{ route('admin.bap.show', $bap->id) }}" class="btn btn-info btn-sm">Detail</a>
-                    <form action="{{ route('admin.bap.approve', $bap->id) }}" method="POST" style="display:inline;">
-                      @csrf
-                      <button type="submit" class="btn btn-success btn-sm">Approve</button>
-                    </form>
-                    <form action="{{ route('admin.bap.reject', $bap->id) }}" method="POST" style="display:inline;">
-                      @csrf
-                      <button type="submit" class="btn btn-danger btn-sm">Reject</button>
-                    </form>
+                    @php
+                      $status = $bap->status_verifikasi ?? 'belum';
+                      $badgeClass = match ($status) {
+                          'disetujui' => 'bg-success',
+                          'ditolak' => 'bg-danger',
+                          default => 'bg-warning text-dark',
+                      };
+                    @endphp
+                    <span class="badge {{ $badgeClass }}">
+                      {{ ucfirst($status) }}
+                    </span>
+                  </td>
+                  <td>{{ $bap->created_at ?? '-' }}</td>
+                  <td>
+                    <a href="{{ route('admin.bap.show', $bap->id) }}" class="btn btn-sm btn-primary">
+                      <i class="fas fa-eye"></i> Detail
+                    </a>
                   </td>
                 </tr>
-              @endforeach
+              @empty
+                <tr>
+                  <td colspan="6" class="text-center">Belum ada data BAP</td>
+                </tr>
+              @endforelse
             </tbody>
           </table>
         </div>

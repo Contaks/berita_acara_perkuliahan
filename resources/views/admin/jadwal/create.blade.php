@@ -1,56 +1,90 @@
-@extends('layouts.app')
+@extends('layouts.admin.app')
 
-@section('title', 'Tambah Jadwal Perkuliahan')
+@section('title', 'Tambah Jadwal')
 
 @section('contents')
-<div class="row">
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-header">
-                <h5>Tambah Jadwal Perkuliahan</h5>
-            </div>
-            <div class="card-body">
-                @if ($errors->any())
-                    <div class="alert alert-danger">
-                        <ul>
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-                <form action="{{ route('jadwal.store') }}" method="POST">
-                    @csrf
-                    <div class="form-group">
-                        <label for="mata_kuliah_id">Mata Kuliah</label>
-                        <select name="mata_kuliah_id" id="mata_kuliah_id" class="form-control">
-                            <option value="">Pilih Mata Kuliah</option>
-                            @foreach ($mataKuliahs as $mataKuliah)
-                                <option value="{{ $mataKuliah->id }}">{{ $mataKuliah->nama_mk }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="form-group">
-                      <label for="hari">Ruangan</label>
-                      <input type="text" name="ruangan" id="ruangan" class="form-control" placeholder="Contoh: D-21">
-                  </div>
-                    <div class="form-group">
-                        <label for="hari">Hari</label>
-                        <input type="text" name="hari" id="hari" class="form-control" placeholder="Contoh: Senin">
-                    </div>
-                    <div class="form-group">
-                        <label for="jam_mulai">Jam Mulai</label>
-                        <input type="time" name="jam_mulai" id="jam_mulai" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="jam_selesai">Jam Selesai</label>
-                        <input type="time" name="jam_selesai" id="jam_selesai" class="form-control">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                    <a href="{{ route('jadwal.index') }}" class="btn btn-secondary">Batal</a>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+  <div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Tambah Jadwal</h1>
+
+    <form action="{{ route('admin.jadwal.store') }}" method="POST">
+      @csrf
+
+      <div class="form-group">
+        <label>Kode Mata Kuliah</label>
+        <input type="text" name="kode_mk" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label>Nama Mata Kuliah</label>
+        <input type="text" name="nama_mk" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label>SKS</label>
+        <input type="number" name="sks" class="form-control" required min="1">
+      </div>
+
+      <div class="form-group">
+        <label>Nama Dosen</label>
+        <select name="nama_dosen" class="form-control" required>
+          <option value="">-- Pilih Dosen --</option>
+          @foreach ($dosens as $dosen)
+            <option value="{{ $dosen->nama }}">{{ $dosen->nama }}</option>
+          @endforeach
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Kelas</label>
+        <input type="text" name="kelas" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label>Jumlah Mahasiswa</label>
+        <input type="number" name="jumlah_mhs" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label>Hari</label>
+        <input type="text" name="hari" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label>Waktu (ex: 08:00 - 10:00)</label>
+        <input type="text" name="waktu" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label>Ruang</label>
+        <input type="text" name="ruang" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label>Kelompok</label>
+        <input type="text" name="kelompok" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>Fakultas</label>
+        <input type="text" name="fakultas" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label>Program Studi</label>
+        <input type="text" name="prodi" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label>Tahun Ajaran</label>
+        <input type="text" name="tahun_ajaran" class="form-control" placeholder="Contoh: 2024/2025" required>
+      </div>
+
+      <div class="form-group">
+        <label>Semester</label>
+        <input type="text" name="semester" class="form-control" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Simpan</button>
+    </form>
+  </div>
 @endsection

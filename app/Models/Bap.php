@@ -2,41 +2,55 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Bap extends Model
 {
-    use HasFactory;
-
+    protected $table = 'bap';
     protected $fillable = [
-        'jadwal_id',
+        'jadwal_kuliah_id',
         'tanggal',
+        'dosen_id',
+        'pertemuan_ke',
+        'jumlah_hadir',
+        'jumlah_tidak_hadir',
         'materi',
-        'keterangan',
-        'approved_by',
-        'approved_at',
-        'status',
-        'created_by', // Tambahkan kolom created_by
+        'pokok_bahasan',
+        'deskripsi_tugas',
+        'lokasi_dosen',
+        'foto_pembelajaran',
+        'status_verifikasi',
+        'verifikasi_admin_id',
+        'catatan_verifikasi'
     ];
 
-    // Relasi ke Jadwal
+    public function jadwalKuliah()
+    {
+        return $this->belongsTo(JadwalKuliah::class, 'jadwal_kuliah_id');
+    }
+
+    public function dosen()
+    {
+        return $this->belongsTo(Dosen::class, 'dosen_id');
+    }
+
+    public function bapMahasiswa()
+    {
+        return $this->hasMany(BapMahasiswa::class);
+    }
+
+    public function verifikasiAdmin()
+    {
+        return $this->belongsTo(Admin::class, 'verifikasi_admin_id');
+    }
     public function jadwal()
     {
-        return $this->belongsTo(Jadwal::class);
-    }
-
-    // Relasi ke User (pembuat BAP)
-    // Relasi ke User (pembuat BAP)
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(\App\Models\JadwalKuliah::class, 'jadwal_kuliah_id');
     }
 
 
-    // Relasi ke Feedback
-    public function feedbacks()
+    public function mahasiswa()
     {
-        return $this->hasMany(Feedback::class, 'bap_id');
+        return $this->belongsToMany(Mahasiswa::class, 'bap_mahasiswa', 'bap_id', 'mahasiswa_id');
     }
 }

@@ -1,84 +1,125 @@
 <?php
 
-use App\Http\Controllers\ChangePasswordController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\InfoUserController;
-use App\Http\Controllers\RegisterController;
-use App\Http\Controllers\ResetController;
-use App\Http\Controllers\SessionsController;
-use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MataKuliahController;
-use App\Http\Controllers\FeedbackController;
-use App\Http\Controllers\JadwalController;
-use App\Http\Controllers\BapController;
-use App\Models\Bap;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\JadwalController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\BapVerifikasiController;
+use App\Http\Controllers\Dosen\BapController as DosenBapController;
+use App\Http\Controllers\Dosen\JadwalController as DosenJadwalController;
+use App\Http\Controllers\Dosen\DosenReportController as DosenReportController;
+use App\Http\Controllers\Admin\UserController as UserController;
+use App\Http\Controllers\Mahasiswa\BapController as MahasiswaBapController;
+use App\Http\Controllers\Mahasiswa\MahasiswaJadwalController as MahasiswaJadwalController;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\DosenMiddleware;
 use App\Http\Middleware\MahasiswaMiddleware;
+// =================== REDIRECT DASHBOARD SESUAI ROLE ===================
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Dosen\DashboardController as DosenDashboardController;
+use App\Http\Controllers\Mahasiswa\DashboardController as MahasiswaDashboardController;
 
-
-Route::get('/welcome', function () {
-    return view('welcome');
-});
-
-Route::get('/registersss', [AuthController::class, 'register'])->name('register');
-Route::post('/registersss', [AuthController::class, 'registerSave'])->name('register.save');
-
+// =================== AUTH ===================
 Route::get('/', [AuthController::class, 'login'])->name('login');
 Route::post('/', [AuthController::class, 'loginAction']);
-
+Route::get('/register', [AuthController::class, 'register'])->name('register');
+Route::post('/register', [AuthController::class, 'registerSave'])->name('register.save');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard'); // Cukup ini saja
+// =================== ADMIN ===================
+Route::middleware(['auth:admin', AdminMiddleware::class])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        // 📅 Manajemen Jadwal
+        Route::get('/jadwal', [JadwalController::class, 'index'])->name('jadwal.index');
+        Route::get('/jadwal/create', [JadwalController::class, 'create'])->name('jadwal.create');
+        Route::post('/jadwal/store', [JadwalController::class, 'store'])->name('jadwal.store');
+
+        // ✅ Pisahkan GET dan POST untuk import
+        Route::get('/jadwal/import', fn() => view('admin.jadwal.import'))->name('jadwal.import.form'); // ← GET
+        Route::post('/jadwal/import', [JadwalController::class, 'import'])->name('jadwal.import');    // ← POST
+        Route::get('/jadwal/{id}', [JadwalController::class, 'show'])->name('jadwal.show');
+        Route::get('/jadwal/{id}/edit', [JadwalController::class, 'edit'])->name('jadwal.edit');
+        Route::put('/jadwal/{id}', [JadwalController::class, 'update'])->name('jadwal.update');
+        Route::delete('/jadwal/{id}', [JadwalController::class, 'destroy'])->name('jadwal.destroy');
+
+        // ADMIN
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        // ✅ Verifikasi BAP
+        Route::get('/bap', [BapVerifikasiController::class, 'index'])->name('bap.index');
+        Route::get('/bap/{id}', [BapVerifikasiController::class, 'show'])->name('bap.show');
+        Route::post('/bap/{id}/verifikasi', [BapVerifikasiController::class, 'verifikasi'])->name('bap.verifikasi');
+        Route::get('/bap/{id}/pdf', [BapVerifikasiController::class, 'exportPdf'])->name('export.pdf');
+        // Tambahkan di dalam group route admin
+        Route::prefix('reports')->name('reports.')->group(function () {
+            // Dosen
+            Route::get('/dosen', [ReportController::class, 'indexDosen'])->name('dosen.index');
+            Route::get('/dosen/{id}', [ReportController::class, 'showDosen'])->name('dosen.show');
+            Route::get('/dosen/export/pdf', [ReportController::class, 'exportIndexPdf'])->name('dosen.exportIndexPdf');
+            Route::get('/dosen/{id}/export/pdf', [ReportController::class, 'exportShowPdf'])->name('dosen.exportShowPdf');
+
+            // BAP
+            Route::get('/bap', [ReportController::class, 'indexBap'])->name('bap.index');
+            Route::get('/bap/export', [ReportController::class, 'exportBapAll'])->name('bap.export');
+        });
 
 
-    Route::resource('jadwal', JadwalController::class);
-    Route::resource('matakuliah', MataKuliahController::class);
-    Route::resource('bap', BapController::class);
-    Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
-});
+        // 👤 Manajemen User
+        Route::get('/user', [UserController::class, 'index'])->name('user.index');
+        Route::get('/user/create', [UserController::class, 'create'])->name('user.create');
+        Route::post('/user/store', [UserController::class, 'store'])->name('user.store');
+        // Detail, Edit, dan Hapus User (dinamis berdasarkan jenis user)
+        Route::get('/user/{tipe}/{id}', [UserController::class, 'show'])->name('user.show');     // lihat detail user
+        Route::get('/user/{tipe}/{id}/edit', [UserController::class, 'edit'])->name('user.edit'); // edit user
+        Route::put('/user/{tipe}/{id}', [UserController::class, 'update'])->name('user.update');  // update user
+        Route::delete('/user/{tipe}/{id}', [UserController::class, 'destroy'])->name('user.destroy'); // hapus user
 
-Route::get('/feedback/form/{bap_id}', [FeedbackController::class, 'create'])->name('feedback.create');
-Route::post('/feedback/store', [FeedbackController::class, 'store'])->name('feedback.store');
+        Route::get('/bap/export', [ReportController::class, 'exportBapAll'])->name('bap.export');
+        Route::get('/jadwal/data', [JadwalController::class, 'data'])->name('jadwal.data');
+    });
 
-use App\Http\Controllers\ManajemenUserController;
+// =================== DOSEN ===================
+Route::middleware(['auth:dosen', DosenMiddleware::class])
+    ->prefix('dosen')
+    ->name('dosen.')
+    ->group(function () {
+        // 📅 Jadwal Mengajar
+        Route::get('/jadwal', [DosenJadwalController::class, 'index'])->name('jadwal.index');
+        Route::get('/jadwal/{id}', [DosenJadwalController::class, 'show'])->name('jadwal.show');
 
-Route::middleware([AdminMiddleware::class])->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+        // DOSEN
+        Route::get('/dashboard', [DosenDashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/admin/profile', function () {
-        return view('admin.profile');
-    })->name('admin.profile');
+        // 🧾 BAP
+        Route::get('/bap', [DosenBapController::class, 'index'])->name('bap.index');
+        Route::get('/bap/create', [DosenBapController::class, 'create'])->name('bap.create');
+        Route::post('/bap/store', [DosenBapController::class, 'store'])->name('bap.store');
+        Route::get('/bap/{id}', [DosenBapController::class, 'show'])->name('bap.show');
+        Route::get('/bap/{id}/pdf', [DosenBapController::class, 'exportPdf'])->name('bap.pdf');
+        Route::get('/reports', [DosenReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/jadwal/{jadwal}', [DosenReportController::class, 'show'])->name('reports.show');
+        Route::get('/reports/jadwal/{jadwal}/pdf', [DosenReportController::class, 'exportPdf'])->name('reports.pdf');
+    });
 
-    // BAP
-    Route::get('/admin/bap', [BapController::class, 'adminIndex'])->name('admin.bap.index');
-    Route::post('/admin/bap/reject/{id}', [BapController::class, 'reject'])->name('admin.bap.reject');
-    Route::post('/admin/bap/approve/{id}', [BapController::class, 'approve'])->name('admin.bap.approve');
-    Route::get('/admin/bap/approved', [BapController::class, 'approvedBaps'])->name('admin.bap.approved');
-    Route::get('/admin/bap/{id}', [BapController::class, 'adminShow'])->name('admin.bap.show');
+// =================== MAHASISWA ===================
+Route::middleware(['auth:mahasiswa', MahasiswaMiddleware::class])
+    ->prefix('mahasiswa')
+    ->name('mahasiswa.')
+    ->group(function () {
+        // 📅 Jadwal Kuliah (opsional)
+        // 📅 Jadwal Kuliah Mahasiswa
+        Route::get('/jadwal', [MahasiswaJadwalController::class, 'index'])->name('jadwal.index');
+        Route::get('/jadwal/{id}', [MahasiswaJadwalController::class, 'show'])->name('jadwal.show');
 
-    // Manajemen User
-    // web.php
-    Route::resource('/admin/manajemen-user', ManajemenUserController::class)->names('admin.manajemen_user');
-});
+        // MAHASISWA
+        Route::get('/dashboard', [MahasiswaDashboardController::class, 'index'])->name('dashboard');
+        // 🧾 BAP Aktif untuk TTD Mahasiswa
+        Route::get('/bap/index', [MahasiswaBapController::class, 'index'])->name('bap.index');
+        Route::get('/bap/riwayat', [MahasiswaBapController::class, 'riwayat'])->name('bap.riwayat');
+        Route::get('/bap/{id}', [MahasiswaBapController::class, 'show'])->name('bap.show');
+        Route::get('/bap/{id}/ttd', [MahasiswaBapController::class, 'formTtd'])->name('bap.form_ttd'); // Form
+        Route::post('/bap/{id}/ttd', [MahasiswaBapController::class, 'ttd'])->name('bap.ttd'); // Submit
 
-Route::middleware([MahasiswaMiddleware::class])->group(function () {
-    Route::get('/mahasiswa/dashboard', function () {
-        return view('mahasiswa.dashboard');
-    })->name('mahasiswa.dashboard');
-
-    Route::get('/mahasiswa/bap', [BapController::class, 'mahasiswaIndex'])->name('mahasiswa.bap.index');
-    Route::get('/mahasiswa/bap/{id}', [BapController::class, 'mahasiswaShow'])->name('mahasiswa.bap.show');
-
-    Route::get('/mahasiswa/profile', [AuthController::class, 'profileMahasiswa'])->name('mahasiswa.profile');
-    Route::post('/mahasiswa/profile/update', [AuthController::class, 'profileUpdate'])->name('mahasiswa.profile.update');
-
-    // Route untuk feedback mahasiswa
-    Route::get('/mahasiswa/bap/{id}/feedback', [FeedbackController::class, 'createMahasiswa'])->name('mahasiswa.feedback.create');
-    Route::post('/mahasiswa/bap/feedback/store', [FeedbackController::class, 'storeMahasiswa'])->name('mahasiswa.feedback.store');
-});
+    });

@@ -1,36 +1,21 @@
-@extends('layouts.app')
+@extends('layouts.mahasiswa.app')
 
-@section('title', 'Detail Jadwal Perkuliahan')
+@section('title', '📘 Detail Jadwal Kuliah')
 
 @section('contents')
-<div class="row">
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-header">
-                <h5>Detail Jadwal Perkuliahan</h5>
-            </div>
-            <div class="card-body">
-                <table class="table">
-                    <tr>
-                        <th>Mata Kuliah</th>
-                        <td>{{ $jadwal->mataKuliah->nama_mk }}</td>
-                    </tr>
-                    <tr>
-                        <th>Hari</th>
-                        <td>{{ $jadwal->hari }}</td>
-                    </tr>
-                    <tr>
-                        <th>Jam Mulai</th>
-                        <td>{{ $jadwal->jam_mulai }}</td>
-                    </tr>
-                    <tr>
-                        <th>Jam Selesai</th>
-                        <td>{{ $jadwal->jam_selesai }}</td>
-                    </tr>
-                </table>
-                <a href="{{ route('jadwal.index') }}" class="btn btn-secondary">Kembali</a>
-            </div>
-        </div>
+  <div class="container-fluid">
+
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">{{ $jadwal->nama_mk }} ({{ $jadwal->kode_mk }})</h5>
+        <p><strong>Kelas:</strong> {{ $jadwal->kelas }}</p>
+        <p><strong>Hari:</strong> {{ $jadwal->hari }}</p>
+        <p><strong>Waktu:</strong> {{ $jadwal->waktu }}</p>
+        <p><strong>Ruang:</strong> {{ $jadwal->ruang }}</p>
+        <p><strong>Dosen:</strong> {{ $jadwal->nama_dosen }}</p>
+      </div>
     </div>
-</div>
+
+    <a href="{{ route('mahasiswa.jadwal.index') }}" class="btn btn-secondary mt-3">← Kembali</a>
+  </div>
 @endsection

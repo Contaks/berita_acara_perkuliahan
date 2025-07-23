@@ -2,76 +2,105 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Jadwal;
-use App\Models\MataKuliah;
 use Illuminate\Http\Request;
+use App\Models\JadwalKuliah;
+use App\Models\Dosen;
+use App\Models\Prodi;
+use App\Models\Semester;
+use App\Models\Kelas;
+// Tambahkan pada bagian atas file controller
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\JadwalImport;
 
 class JadwalController extends Controller
 {
     public function index()
     {
-        $jadwals = Jadwal::with('mataKuliah')->get();
-        return view('jadwal.index', compact('jadwals'));
+        $jadwals = JadwalKuliah::with([
+            'dosen.user',
+            'semester',
+            'kelas.prodi',
+            'mataKuliah.prodi'
+        ])->latest()->get();
+
+        return view('admin.jadwal.index', compact('jadwals'));
     }
 
     public function create()
     {
-        $mataKuliahs = MataKuliah::all();
-        return view('jadwal.create', compact('mataKuliahs'));
+        $dosens = Dosen::with('user')->get();
+        $prodis = Prodi::all();
+        $semesters = Semester::all();
+        $kelas = Kelas::all();
+
+        return view('admin.jadwal.create', compact('dosens', 'prodis', 'semesters', 'kelas'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'mata_kuliah_id' => 'required|exists:mata_kuliahs,id',
-            'hari' => 'required',
+            'dosen_id' => 'required',
+            'prodi_id' => 'required',
+            'semester_id' => 'required',
+            'kelas_id' => 'required',
+            'mata_kuliah' => 'required|string|max:255',
+            'hari' => 'required|string',
             'jam_mulai' => 'required',
-            'jam_selesai' => 'required|after:jam_mulai',
-            'ruangan' => 'required',
-            'kelas' => 'required',
+            'jam_selesai' => 'required',
         ]);
 
-        Jadwal::create($request->all());
+        JadwalKuliah::create($request->all());
 
-        return redirect()->route('jadwal.index')->with('success', 'Jadwal berhasil ditambahkan.');
+        return redirect()->route('admin.jadwal.index')->with('success', 'Jadwal berhasil ditambahkan');
     }
 
     public function edit($id)
     {
-        $jadwal = Jadwal::findOrFail($id);
-        $mataKuliahs = MataKuliah::all();
-        return view('jadwal.edit', compact('jadwal', 'mataKuliahs'));
+        $jadwal = JadwalKuliah::findOrFail($id);
+        $dosens = Dosen::with('user')->get();
+        $prodis = Prodi::all();
+        $semesters = Semester::all();
+        $kelas = Kelas::all();
+
+        return view('jadwal.edit', compact('jadwal', 'dosens', 'prodis', 'semesters', 'kelas'));
     }
 
     public function update(Request $request, $id)
     {
+        $jadwal = JadwalKuliah::findOrFail($id);
+
         $request->validate([
-            'mata_kuliah_id' => 'required|exists:mata_kuliahs,id',
-            'hari' => 'required',
+            'dosen_id' => 'required',
+            'prodi_id' => 'required',
+            'semester_id' => 'required',
+            'kelas_id' => 'required',
+            'mata_kuliah' => 'required|string|max:255',
+            'hari' => 'required|string',
             'jam_mulai' => 'required',
-            'jam_selesai' => 'required|after:jam_mulai',
-            'ruangan' => 'required',
-            'kelas' => 'required',
+            'jam_selesai' => 'required',
         ]);
 
-        $jadwal = Jadwal::findOrFail($id);
         $jadwal->update($request->all());
 
-        return redirect()->route('jadwal.index')->with('success', 'Jadwal berhasil diperbarui.');
+        return redirect()->route('admin.jadwal.index')->with('success', 'Jadwal berhasil diperbarui');
     }
-
-    public function show($id)
-    {
-        $jadwal = Jadwal::with('mataKuliah')->findOrFail($id);
-        return view('jadwal.show', compact('jadwal'));
-    }
-
 
     public function destroy($id)
     {
-        $jadwal = Jadwal::findOrFail($id);
+        $jadwal = JadwalKuliah::findOrFail($id);
         $jadwal->delete();
 
-        return redirect()->route('jadwal.index')->with('success', 'Jadwal berhasil dihapus.');
+        return redirect()->route('admin.jadwal.index')->with('success', 'Jadwal berhasil dihapus');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls'
+        ]);
+
+        Excel::import(new JadwalImport, $request->file('file'));
+
+        return redirect()->route('admin.jadwal.index')->with('success', 'Jadwal berhasil diimport');
     }
 }
